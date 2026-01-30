@@ -1,0 +1,14 @@
+# Build output
+main.js
+
+# npm
+node_modules/
+package-lock.json
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
