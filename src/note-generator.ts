@@ -11,93 +11,54 @@ export function sanitizeFilename(name: string): string {
 
 export function generateFilename(articleGroup: ArticleGroup): string {
 	const title = articleGroup.articleTitle || "Untitled";
-	const siteName = articleGroup.siteName;
 
-	let filename: string;
-	if (siteName) {
-		filename = `${siteName} - ${title}`;
-	} else {
-		filename = title;
+	// Use the earliest highlight's date
+	const earliestDate = articleGroup.highlights
+		.map((h) => new Date(h.createdAt))
+		.sort((a, b) => a.getTime() - b.getTime())[0];
+
+	const dateStr = earliestDate
+		? earliestDate.toISOString().split("T")[0]
+		: new Date().toISOString().split("T")[0];
+
+	const sanitizedTitle = sanitizeFilename(title);
+
+	if (!sanitizedTitle || sanitizedTitle === "-") {
+		return `${dateStr} article-${articleGroup.articleId}`;
 	}
 
-	const sanitized = sanitizeFilename(filename);
-
-	// Fallback to article ID if sanitized name is empty
-	if (!sanitized || sanitized === "-") {
-		return `article-${articleGroup.articleId}`;
-	}
-
-	return sanitized;
+	return `${dateStr} ${sanitizedTitle}`;
 }
 
-export function formatDate(isoString: string): string {
-	const date = new Date(isoString);
-	return date.toLocaleDateString("en-US", {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-	});
+function escapeYamlString(value: string): string {
+	const escaped = value.replace(/"/g, '\\"');
+	return `"${escaped}"`;
 }
 
-export function generateFrontmatter(
-	articleGroup: ArticleGroup,
-	lastSynced: string
-): string {
-	const frontmatter: Record<string, string | null> = {
-		quickReadsArticleId: articleGroup.articleId,
-		title: articleGroup.articleTitle,
-		siteName: articleGroup.siteName,
-		lastSynced: lastSynced,
-	};
-
-	const lines = ["---"];
-	for (const [key, value] of Object.entries(frontmatter)) {
-		if (value === null || value === undefined) {
-			lines.push(`${key}: null`);
-		} else {
-			// Escape quotes in strings
-			const escaped = value.replace(/"/g, '\\"');
-			lines.push(`${key}: "${escaped}"`);
-		}
-	}
-	lines.push("---");
-
+export function generateFrontmatter(articleGroup: ArticleGroup): string {
+	const lines = [
+		"---",
+		`quickReadsArticleId: ${escapeYamlString(articleGroup.articleId)}`,
+		`title: ${escapeYamlString(articleGroup.articleTitle)}`,
+		`author: ${escapeYamlString(articleGroup.author)}`,
+		`site: ${escapeYamlString(articleGroup.siteName)}`,
+		"---",
+	];
 	return lines.join("\n");
 }
 
 export function generateHighlightBlock(highlight: ApiHighlight): string {
-	const date = formatDate(highlight.createdAt);
-	return `> ${highlight.text}\n>\n> — *Highlighted on ${date}*`;
+	return `> ${highlight.text}`;
 }
 
 export function generateNoteContent(articleGroup: ArticleGroup): string {
-	const { articleTitle, siteName, highlights } = articleGroup;
-	const now = new Date().toISOString();
-
 	const parts: string[] = [];
 
-	// Frontmatter
-	parts.push(generateFrontmatter(articleGroup, now));
-	parts.push("");
-
-	// Title
-	parts.push(`# ${articleTitle || "Untitled"}`);
-	parts.push("");
-
-	// Metadata section
-	if (siteName) {
-		parts.push(`**Source**: ${siteName}`);
-	}
-
-	parts.push("");
-	parts.push("---");
-	parts.push("");
-
-	// Highlights section
+	parts.push(generateFrontmatter(articleGroup));
 	parts.push("## Highlights");
 	parts.push("");
 
-	for (const highlight of highlights) {
+	for (const highlight of articleGroup.highlights) {
 		parts.push(generateHighlightBlock(highlight));
 		parts.push("");
 	}
@@ -107,21 +68,13 @@ export function generateNoteContent(articleGroup: ArticleGroup): string {
 
 export function appendHighlightsToNote(
 	existingContent: string,
-	newHighlights: ApiHighlight[],
-	lastSynced: string
+	newHighlights: ApiHighlight[]
 ): string {
-	// Update lastSynced in frontmatter
-	let content = existingContent.replace(
-		/lastSynced: "[^"]*"/,
-		`lastSynced: "${lastSynced}"`
-	);
-
-	// Append new highlights at the end
 	const highlightBlocks = newHighlights
 		.map((h) => generateHighlightBlock(h))
 		.join("\n\n");
 
-	// Ensure there's a newline before appending
+	let content = existingContent;
 	if (!content.endsWith("\n")) {
 		content += "\n";
 	}

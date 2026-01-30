@@ -85,14 +85,25 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 				})
 			);
 
-		// Display last sync time
+		// Display last sync time and reset button
 		const lastSync = this.plugin.pluginData.lastSyncTime;
-		if (lastSync) {
-			const date = new Date(lastSync);
-			containerEl.createEl("p", {
-				text: `Last synced: ${date.toLocaleString()}`,
-				cls: "setting-item-description",
-			});
-		}
+		const resetSetting = new Setting(containerEl)
+			.setName("Reset Sync")
+			.setDesc(
+				lastSync
+					? `Last synced: ${new Date(lastSync).toLocaleString()}`
+					: "Never synced"
+			)
+			.addButton((button) =>
+				button
+					.setButtonText("Reset")
+					.setWarning()
+					.onClick(async () => {
+						this.plugin.pluginData.syncedHighlightIds = [];
+						this.plugin.pluginData.lastSyncTime = null;
+						await this.plugin.savePluginData();
+						this.display(); // Refresh the settings view
+					})
+			);
 	}
 }

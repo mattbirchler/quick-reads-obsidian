@@ -126,6 +126,7 @@ export class SyncService {
 					articleId: highlight.articleId,
 					articleTitle: highlight.articleTitle,
 					siteName: highlight.siteName,
+					author: highlight.author,
 					highlights: [],
 				});
 			}
@@ -164,8 +165,7 @@ export class SyncService {
 			const existingContent = await this.app.vault.read(existingFile);
 			const updatedContent = appendHighlightsToNote(
 				existingContent,
-				articleGroup.highlights,
-				new Date().toISOString()
+				articleGroup.highlights
 			);
 			await this.app.vault.modify(existingFile, updatedContent);
 		} else {
