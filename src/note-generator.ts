@@ -30,21 +30,16 @@ export function generateFilename(articleGroup: ArticleGroup): string {
 	return `${dateStr} ${sanitizedTitle}`;
 }
 
-function escapeYamlString(value: string): string {
-	const escaped = value.replace(/"/g, '\\"');
-	return `"${escaped}"`;
-}
-
 export function generateFrontmatter(articleGroup: ArticleGroup): string {
 	const lines = [
 		"---",
-		`quickReadsArticleId: ${escapeYamlString(articleGroup.articleId)}`,
-		`title: ${escapeYamlString(articleGroup.articleTitle)}`,
-		`author: ${escapeYamlString(articleGroup.author)}`,
-		`site: ${escapeYamlString(articleGroup.siteName)}`,
+		`quickReadsArticleId: ${articleGroup.articleId}`,
+		`title: ${articleGroup.articleTitle}`,
+		`author: ${articleGroup.author}`,
+		`site: ${articleGroup.siteName}`,
 	];
 	if (articleGroup.url) {
-		lines.push(`url: ${escapeYamlString(articleGroup.url)}`);
+		lines.push(`url: ${articleGroup.url}`);
 	}
 	lines.push("---");
 	return lines.join("\n");
