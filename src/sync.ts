@@ -127,6 +127,7 @@ export class SyncService {
 					articleTitle: highlight.articleTitle,
 					siteName: highlight.siteName,
 					author: highlight.author,
+					url: highlight.url,
 					highlights: [],
 				});
 			}

@@ -30,6 +30,7 @@ export interface ApiHighlight {
 	articleTitle: string;
 	siteName: string;
 	author: string;
+	url?: string;
 	text: string;
 	createdAt: string;
 }
@@ -39,5 +40,6 @@ export interface ArticleGroup {
 	articleTitle: string;
 	siteName: string;
 	author: string;
+	url?: string;
 	highlights: ApiHighlight[];
 }

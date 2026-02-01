@@ -42,8 +42,11 @@ export function generateFrontmatter(articleGroup: ArticleGroup): string {
 		`title: ${escapeYamlString(articleGroup.articleTitle)}`,
 		`author: ${escapeYamlString(articleGroup.author)}`,
 		`site: ${escapeYamlString(articleGroup.siteName)}`,
-		"---",
 	];
+	if (articleGroup.url) {
+		lines.push(`url: ${escapeYamlString(articleGroup.url)}`);
+	}
+	lines.push("---");
 	return lines.join("\n");
 }
 
