@@ -24,6 +24,11 @@ export const DEFAULT_PLUGIN_DATA: PluginData = {
 	lastSyncTime: null,
 };
 
+export interface PaginatedHighlightsResponse {
+	highlights: ApiHighlight[];
+	total: number;
+}
+
 export interface ApiHighlight {
 	id: string;
 	articleId: string;

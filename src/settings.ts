@@ -1,5 +1,30 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import {
+	AbstractInputSuggest,
+	App,
+	PluginSettingTab,
+	Setting,
+	TFolder,
+} from "obsidian";
 import QuickReadsPlugin from "./main";
+
+class FolderSuggest extends AbstractInputSuggest<TFolder> {
+	getSuggestions(query: string): TFolder[] {
+		const folders = this.app.vault.getAllFolders();
+		const lower = query.toLowerCase();
+		return folders
+			.filter((f) => f.path.toLowerCase().includes(lower))
+			.sort((a, b) => a.path.localeCompare(b.path));
+	}
+
+	renderSuggestion(folder: TFolder, el: HTMLElement): void {
+		el.setText(folder.path || "/");
+	}
+
+	selectSuggestion(folder: TFolder): void {
+		this.setValue(folder.path);
+		this.close();
+	}
+}
 
 export class QuickReadsSettingTab extends PluginSettingTab {
 	plugin: QuickReadsPlugin;
@@ -33,16 +58,19 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Highlights Folder")
 			.setDesc("Folder where highlight notes will be created")
-			.addText((text) =>
-				text
-					.setPlaceholder("Quick Reads")
-					.setValue(this.plugin.settings.highlightsFolder)
-					.onChange(async (value) => {
+			.addSearch((search) => {
+				new FolderSuggest(this.app, search.inputEl).onSelect(
+					async () => {
+						const value = search.getValue();
 						this.plugin.settings.highlightsFolder =
 							value || "Quick Reads";
 						await this.plugin.saveSettings();
-					})
-			);
+					}
+				);
+				search
+					.setPlaceholder("Quick Reads")
+					.setValue(this.plugin.settings.highlightsFolder);
+			});
 
 		new Setting(containerEl)
 			.setName("Sync on Startup")

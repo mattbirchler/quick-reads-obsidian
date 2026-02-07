@@ -1,5 +1,5 @@
 import { requestUrl, RequestUrlResponse } from "obsidian";
-import { ApiHighlight } from "./types";
+import { ApiHighlight, PaginatedHighlightsResponse } from "./types";
 
 const API_BASE_URL = "https://quickreads.app/api";
 
@@ -15,21 +15,33 @@ export class QuickReadsApi {
 	}
 
 	async fetchAllHighlights(): Promise<ApiHighlight[]> {
-		const response: RequestUrlResponse = await requestUrl({
-			url: `${API_BASE_URL}/highlights`,
-			method: "GET",
-			headers: {
-				Authorization: `Bearer ${this.apiKey}`,
-				"Content-Type": "application/json",
-			},
-		});
+		const allHighlights: ApiHighlight[] = [];
+		let offset = 0;
+		const limit = 200;
 
-		if (response.status !== 200) {
-			throw new Error(
-				`API request failed with status ${response.status}: ${response.text}`
-			);
+		while (true) {
+			const response: RequestUrlResponse = await requestUrl({
+				url: `${API_BASE_URL}/highlights?limit=${limit}&offset=${offset}`,
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${this.apiKey}`,
+					"Content-Type": "application/json",
+				},
+			});
+
+			if (response.status !== 200) {
+				throw new Error(
+					`API request failed with status ${response.status}: ${response.text}`
+				);
+			}
+
+			const data = response.json as PaginatedHighlightsResponse;
+			allHighlights.push(...data.highlights);
+
+			if (allHighlights.length >= data.total) break;
+			offset += limit;
 		}
 
-		return response.json as ApiHighlight[];
+		return allHighlights;
 	}
 }
