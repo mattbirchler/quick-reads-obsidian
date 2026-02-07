@@ -1,6 +1,6 @@
 {
 	"id": "quick-reads-sync",
-	"name": "Quick Reads Sync",
+	"name": "Quick Reads sync",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
 	"description": "Sync your highlights from Quick Reads into your vault.",

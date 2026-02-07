@@ -39,10 +39,10 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "Quick Reads Sync Settings" });
+		containerEl.createEl("h2", { text: "Quick Reads sync settings" });
 
 		new Setting(containerEl)
-			.setName("API Key")
+			.setName("API key")
 			.setDesc(
 				"Your Quick Reads API key. Get it from quickreads.app/settings"
 			)
@@ -57,7 +57,7 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Highlights Folder")
+			.setName("Highlights folder")
 			.setDesc("Folder where highlight notes will be created")
 			.addSearch((search) => {
 				new FolderSuggest(this.app, search.inputEl).onSelect(
@@ -74,7 +74,7 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Sync on Startup")
+			.setName("Sync on startup")
 			.setDesc("Automatically sync highlights when Obsidian starts")
 			.addToggle((toggle) =>
 				toggle
@@ -86,7 +86,7 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Auto-sync Interval")
+			.setName("Auto-sync interval")
 			.setDesc(
 				"Minutes between automatic syncs (0 to disable auto-sync)"
 			)
@@ -106,7 +106,7 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 
 		// Template settings
 		const noteTemplateSetting = new Setting(containerEl)
-			.setName("Note Template")
+			.setName("Note template")
 			.setDesc(
 				"Customize the format of generated notes. " +
 					"Supported tags: {{articleId}}, {{articleTitle}}, {{author}}, " +
@@ -123,7 +123,7 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 
 		// Manual sync button
 		new Setting(containerEl)
-			.setName("Sync Now")
+			.setName("Sync now")
 			.setDesc("Manually sync highlights from Quick Reads")
 			.addButton((button) =>
 				button.setButtonText("Sync").onClick(async () => {
@@ -134,7 +134,7 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 		// Display last sync time and reset button
 		const lastSync = this.plugin.pluginData.lastSyncTime;
 		const resetSetting = new Setting(containerEl)
-			.setName("Reset Sync")
+			.setName("Reset sync")
 			.setDesc(
 				lastSync
 					? `Last synced: ${new Date(lastSync).toLocaleString()}`
