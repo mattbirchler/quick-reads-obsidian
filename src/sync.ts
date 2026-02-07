@@ -171,7 +171,7 @@ export class SyncService {
 			await this.app.vault.modify(existingFile, updatedContent);
 		} else {
 			// Create new note
-			const content = generateNoteContent(articleGroup);
+			const content = generateNoteContent(articleGroup, this.settings);
 			await this.app.vault.create(filePath, content);
 		}
 	}

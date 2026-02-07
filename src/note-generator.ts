@@ -1,4 +1,4 @@
-import { ApiHighlight, ArticleGroup } from "./types";
+import { ApiHighlight, ArticleGroup, QuickReadsSettings } from "./types";
 
 export function sanitizeFilename(name: string): string {
 	// Remove or replace characters that are invalid in filenames
@@ -30,38 +30,58 @@ export function generateFilename(articleGroup: ArticleGroup): string {
 	return `${dateStr} ${sanitizedTitle}`;
 }
 
-export function generateFrontmatter(articleGroup: ArticleGroup): string {
-	const lines = [
-		"---",
-		`quickReadsArticleId: ${articleGroup.articleId}`,
-		`title: ${articleGroup.articleTitle}`,
-		`author: ${articleGroup.author}`,
-		`site: ${articleGroup.siteName}`,
-	];
-	if (articleGroup.url) {
-		lines.push(`url: ${articleGroup.url}`);
-	}
-	lines.push("---");
-	return lines.join("\n");
+export function renderTemplate(
+	template: string,
+	variables: Record<string, string>
+): string {
+	return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+		return key in variables ? variables[key] : match;
+	});
+}
+
+function articleVariables(articleGroup: ArticleGroup): Record<string, string> {
+	return {
+		articleId: articleGroup.articleId,
+		articleTitle: articleGroup.articleTitle,
+		author: articleGroup.author,
+		siteName: articleGroup.siteName,
+		url: articleGroup.url || "",
+	};
+}
+
+function highlightVariables(highlight: ApiHighlight): Record<string, string> {
+	const date = new Date(highlight.createdAt);
+	return {
+		id: highlight.id,
+		articleId: highlight.articleId,
+		articleTitle: highlight.articleTitle,
+		author: highlight.author,
+		siteName: highlight.siteName,
+		url: highlight.url || "",
+		text: highlight.text,
+		createdAt: highlight.createdAt,
+		date: date.toISOString().split("T")[0],
+	};
 }
 
 export function generateHighlightBlock(highlight: ApiHighlight): string {
 	return `> ${highlight.text}`;
 }
 
-export function generateNoteContent(articleGroup: ArticleGroup): string {
-	const parts: string[] = [];
+export function generateNoteContent(
+	articleGroup: ArticleGroup,
+	settings: QuickReadsSettings
+): string {
+	const renderedHighlights = articleGroup.highlights
+		.map((h) => generateHighlightBlock(h))
+		.join("\n\n");
 
-	parts.push(generateFrontmatter(articleGroup));
-	parts.push("## Highlights");
-	parts.push("");
+	const vars = {
+		...articleVariables(articleGroup),
+		highlights: renderedHighlights,
+	};
 
-	for (const highlight of articleGroup.highlights) {
-		parts.push(generateHighlightBlock(highlight));
-		parts.push("");
-	}
-
-	return parts.join("\n");
+	return renderTemplate(settings.noteTemplate, vars) + "\n";
 }
 
 export function appendHighlightsToNote(

@@ -3,13 +3,26 @@ export interface QuickReadsSettings {
 	highlightsFolder: string;
 	syncOnStartup: boolean;
 	autoSyncInterval: number; // minutes, 0 = disabled
+	noteTemplate: string;
 }
+
+export const DEFAULT_NOTE_TEMPLATE = `---
+quickReadsArticleId: {{articleId}}
+title: {{articleTitle}}
+author: {{author}}
+site: {{siteName}}
+url: {{url}}
+---
+## Highlights
+
+{{highlights}}`;
 
 export const DEFAULT_SETTINGS: QuickReadsSettings = {
 	apiKey: "",
 	highlightsFolder: "Quick Reads",
 	syncOnStartup: false,
 	autoSyncInterval: 0,
+	noteTemplate: DEFAULT_NOTE_TEMPLATE,
 };
 
 export interface PluginData {

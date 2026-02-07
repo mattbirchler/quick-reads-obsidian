@@ -6,6 +6,7 @@ import {
 	TFolder,
 } from "obsidian";
 import QuickReadsPlugin from "./main";
+import { DEFAULT_NOTE_TEMPLATE } from "./types";
 
 class FolderSuggest extends AbstractInputSuggest<TFolder> {
 	getSuggestions(query: string): TFolder[] {
@@ -102,6 +103,23 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 						this.plugin.resetAutoSync();
 					})
 			);
+
+		// Template settings
+		const noteTemplateSetting = new Setting(containerEl)
+			.setName("Note Template")
+			.setDesc(
+				"Customize the format of generated notes. " +
+					"Supported tags: {{articleId}}, {{articleTitle}}, {{author}}, " +
+					"{{siteName}}, {{url}}, {{highlights}}."
+			);
+		const noteTextarea = noteTemplateSetting.controlEl.createEl("textarea");
+		noteTextarea.value = this.plugin.settings.noteTemplate;
+		noteTextarea.rows = 10;
+		noteTextarea.cols = 40;
+		noteTextarea.addEventListener("change", async () => {
+			this.plugin.settings.noteTemplate = noteTextarea.value;
+			await this.plugin.saveSettings();
+		});
 
 		// Manual sync button
 		new Setting(containerEl)
