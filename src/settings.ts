@@ -39,12 +39,12 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "Quick Reads sync settings" });
+		new Setting(containerEl).setName("quick reads sync settings").setHeading();
 
 		new Setting(containerEl)
 			.setName("API key")
 			.setDesc(
-				"Your Quick Reads API key. Get it from quickreads.app/settings"
+				"Your quick reads API key. Get it from quickreads.app/settings"
 			)
 			.addText((text) =>
 				text
@@ -64,12 +64,12 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 					async () => {
 						const value = search.getValue();
 						this.plugin.settings.highlightsFolder =
-							value || "Quick Reads";
+							value || "quick reads";
 						await this.plugin.saveSettings();
 					}
 				);
 				search
-					.setPlaceholder("Quick Reads")
+					.setPlaceholder("quick reads")
 					.setValue(this.plugin.settings.highlightsFolder);
 			});
 
@@ -116,15 +116,15 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 		noteTextarea.value = this.plugin.settings.noteTemplate;
 		noteTextarea.rows = 10;
 		noteTextarea.cols = 40;
-		noteTextarea.addEventListener("change", async () => {
+		noteTextarea.addEventListener("change", () => {
 			this.plugin.settings.noteTemplate = noteTextarea.value;
-			await this.plugin.saveSettings();
+			void this.plugin.saveSettings();
 		});
 
 		// Manual sync button
 		new Setting(containerEl)
 			.setName("Sync now")
-			.setDesc("Manually sync highlights from Quick Reads")
+			.setDesc("Manually sync highlights from quick reads")
 			.addButton((button) =>
 				button.setButtonText("Sync").onClick(async () => {
 					await this.plugin.syncHighlights();

@@ -19,7 +19,7 @@ url: {{url}}
 
 export const DEFAULT_SETTINGS: QuickReadsSettings = {
 	apiKey: "",
-	highlightsFolder: "Quick Reads",
+	highlightsFolder: "quick reads",
 	syncOnStartup: false,
 	autoSyncInterval: 0,
 	noteTemplate: DEFAULT_NOTE_TEMPLATE,

@@ -43,11 +43,11 @@ export class SyncService {
 
 	async sync(): Promise<{ synced: number; errors: number }> {
 		if (!this.settings.apiKey) {
-			new Notice("Please configure your Quick Reads API key in settings");
+			new Notice("Please configure your quick reads API key in settings");
 			return { synced: 0, errors: 0 };
 		}
 
-		new Notice("Syncing highlights from Quick Reads...");
+		new Notice("Syncing highlights from quick reads...");
 
 		try {
 			// Fetch all highlights from API

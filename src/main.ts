@@ -29,16 +29,16 @@ export default class QuickReadsPlugin extends Plugin {
 		);
 
 		// Add ribbon icon
-		this.addRibbonIcon("book-open", "Sync Quick Reads highlights", () => {
-			this.syncHighlights();
+		this.addRibbonIcon("book-open", "Sync quick reads highlights", () => {
+			void this.syncHighlights();
 		});
 
 		// Add command
 		this.addCommand({
 			id: "sync-highlights",
-			name: "Sync highlights from Quick Reads",
+			name: "Sync highlights from quick reads",
 			callback: () => {
-				this.syncHighlights();
+				void this.syncHighlights();
 			},
 		});
 
@@ -52,7 +52,7 @@ export default class QuickReadsPlugin extends Plugin {
 		if (this.settings.syncOnStartup && this.settings.apiKey) {
 			// Delay startup sync slightly to let Obsidian fully load
 			setTimeout(() => {
-				this.syncHighlights();
+				void this.syncHighlights();
 			}, 2000);
 		}
 	}
@@ -104,7 +104,7 @@ export default class QuickReadsPlugin extends Plugin {
 		if (this.settings.autoSyncInterval > 0) {
 			const intervalMs = this.settings.autoSyncInterval * 60 * 1000;
 			this.autoSyncIntervalId = window.setInterval(() => {
-				this.syncHighlights();
+				void this.syncHighlights();
 			}, intervalMs);
 
 			// Register interval for cleanup
