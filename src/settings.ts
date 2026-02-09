@@ -39,7 +39,7 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		new Setting(containerEl).setName("quick reads sync settings").setHeading();
+		new Setting(containerEl).setName("Sync").setHeading();
 
 		new Setting(containerEl)
 			.setName("API key")
@@ -69,7 +69,7 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 					}
 				);
 				search
-					.setPlaceholder("quick reads")
+					.setPlaceholder("Quick reads")
 					.setValue(this.plugin.settings.highlightsFolder);
 			});
 
