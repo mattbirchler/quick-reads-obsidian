@@ -38,7 +38,13 @@ export class QuickReadsApi {
 			const data = response.json as PaginatedHighlightsResponse;
 			allHighlights.push(...data.highlights);
 
-			if (allHighlights.length >= data.total) break;
+			// Break when we've got everything, or when the server returns
+			// an empty page (guards against a bad `total` causing an infinite loop).
+			if (
+				data.highlights.length === 0 ||
+				allHighlights.length >= data.total
+			)
+				break;
 			offset += limit;
 		}
 
