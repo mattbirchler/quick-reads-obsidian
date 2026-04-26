@@ -49,21 +49,6 @@ function articleVariables(articleGroup: ArticleGroup): Record<string, string> {
 	};
 }
 
-function highlightVariables(highlight: ApiHighlight): Record<string, string> {
-	const date = new Date(highlight.createdAt);
-	return {
-		id: highlight.id,
-		articleId: highlight.articleId,
-		articleTitle: highlight.articleTitle,
-		author: highlight.author,
-		siteName: highlight.siteName,
-		url: highlight.url || "",
-		text: highlight.text,
-		createdAt: highlight.createdAt,
-		date: date.toISOString().split("T")[0],
-	};
-}
-
 export function generateHighlightBlock(highlight: ApiHighlight): string {
 	return `> ${highlight.text}`;
 }
