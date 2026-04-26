@@ -6,7 +6,6 @@ import {
 	TFolder,
 } from "obsidian";
 import QuickReadsPlugin from "./main";
-import { DEFAULT_NOTE_TEMPLATE } from "./types";
 
 class FolderSuggest extends AbstractInputSuggest<TFolder> {
 	getSuggestions(query: string): TFolder[] {
@@ -133,7 +132,7 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 
 		// Display last sync time and reset button
 		const lastSync = this.plugin.pluginData.lastSyncTime;
-		const resetSetting = new Setting(containerEl)
+		new Setting(containerEl)
 			.setName("Reset sync")
 			.setDesc(
 				lastSync
