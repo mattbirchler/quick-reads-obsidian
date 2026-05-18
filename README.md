@@ -12,7 +12,7 @@ Sync your Quick Reads highlights into Obsidian notes.
 
 ## Requirements
 
-- Obsidian `0.15.0` or newer
+- Obsidian `1.6.6` or newer
 - A Quick Reads API key from `https://quickreads.app/settings`
 
 ## Setup
