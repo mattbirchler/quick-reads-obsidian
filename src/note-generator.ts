@@ -99,6 +99,50 @@ export function filterDuplicateHighlights(
 	return result;
 }
 
+export function removeDuplicateHighlightBlocks(content: string): {
+	content: string;
+	removed: number;
+} {
+	const lines = content.split("\n");
+	const seen = new Set<string>();
+	const out: string[] = [];
+	let removed = 0;
+	let i = 0;
+
+	while (i < lines.length) {
+		if (!lines[i].startsWith(">")) {
+			out.push(lines[i]);
+			i++;
+			continue;
+		}
+
+		const start = i;
+		while (i < lines.length && lines[i].startsWith(">")) {
+			i++;
+		}
+		const block = lines.slice(start, i);
+		const text = block
+			.map((line) => line.replace(/^>\s?/, ""))
+			.join("\n")
+			.trim();
+
+		if (text && seen.has(text)) {
+			removed++;
+			// Drop the blank line that separated this block from prior content
+			if (out.length > 0 && out[out.length - 1].trim() === "") {
+				out.pop();
+			}
+		} else {
+			if (text) {
+				seen.add(text);
+			}
+			out.push(...block);
+		}
+	}
+
+	return { content: out.join("\n"), removed };
+}
+
 export function appendHighlightsToNote(
 	existingContent: string,
 	newHighlights: ApiHighlight[]

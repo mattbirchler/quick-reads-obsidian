@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
 	extractHighlightTexts,
 	filterDuplicateHighlights,
+	removeDuplicateHighlightBlocks,
 } from "../src/note-generator";
 import { ApiHighlight } from "../src/types";
 
@@ -78,5 +79,63 @@ describe("filterDuplicateHighlights", () => {
 			makeHighlight("2", "the cat sat"),
 		]);
 		expect(result.length).toBe(2);
+	});
+});
+
+describe("removeDuplicateHighlightBlocks", () => {
+	it("removes later duplicate blockquotes, keeps the first", () => {
+		const content = `## Highlights
+
+> Alpha
+
+> Beta
+
+> Alpha
+`;
+		const result = removeDuplicateHighlightBlocks(content);
+		expect(result.removed).toBe(1);
+		expect(result.content).toBe(`## Highlights
+
+> Alpha
+
+> Beta
+`);
+	});
+
+	it("is a no-op when there are no duplicates", () => {
+		const content = "## Highlights\n\n> Alpha\n\n> Beta\n";
+		const result = removeDuplicateHighlightBlocks(content);
+		expect(result.removed).toBe(0);
+		expect(result.content).toBe(content);
+	});
+
+	it("preserves non-blockquote content around removed duplicates", () => {
+		const content = `---
+title: Test
+---
+## Highlights
+
+> Alpha
+
+My own note in between.
+
+> Alpha
+`;
+		const result = removeDuplicateHighlightBlocks(content);
+		expect(result.removed).toBe(1);
+		expect(result.content).toContain("My own note in between.");
+		expect(result.content.match(/> Alpha/g)?.length).toBe(1);
+	});
+
+	it("compares multi-line blockquote blocks as a whole", () => {
+		const content = "> Line one\n> Line two\n\n> Line one\n";
+		const result = removeDuplicateHighlightBlocks(content);
+		expect(result.removed).toBe(0);
+	});
+
+	it("removes whitespace-variant duplicates", () => {
+		const content = "> Alpha\n\n>  Alpha \n";
+		const result = removeDuplicateHighlightBlocks(content);
+		expect(result.removed).toBe(1);
 	});
 });
