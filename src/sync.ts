@@ -4,6 +4,8 @@ import {
 	generateFilename,
 	generateNoteContent,
 	appendHighlightsToNote,
+	filterDuplicateHighlights,
+	removeDuplicateHighlightBlocks,
 } from "./note-generator";
 import {
 	ApiHighlight,
@@ -82,6 +84,9 @@ export class SyncService {
 					for (const h of articleGroup.highlights) {
 						this.pluginData.syncedHighlightIds.push(h.id);
 					}
+					// Persist after each article so an interrupted sync
+					// doesn't re-append these highlights next time
+					await this.savePluginData();
 					syncedCount += articleGroup.highlights.length;
 				} catch (error) {
 					console.error(
@@ -146,6 +151,39 @@ export class SyncService {
 		return map;
 	}
 
+	async removeDuplicatesFromNotes(): Promise<{
+		notesChanged: number;
+		duplicatesRemoved: number;
+	}> {
+		const folder = this.app.vault.getAbstractFileByPath(
+			this.settings.highlightsFolder
+		);
+		if (!(folder instanceof TFolder)) {
+			new Notice(
+				`Highlights folder "${this.settings.highlightsFolder}" not found`
+			);
+			return { notesChanged: 0, duplicatesRemoved: 0 };
+		}
+
+		let notesChanged = 0;
+		let duplicatesRemoved = 0;
+
+		for (const child of folder.children) {
+			if (!(child instanceof TFile) || child.extension !== "md") {
+				continue;
+			}
+			const content = await this.app.vault.read(child);
+			const result = removeDuplicateHighlightBlocks(content);
+			if (result.removed > 0 && result.content !== content) {
+				await this.app.vault.modify(child, result.content);
+				notesChanged++;
+				duplicatesRemoved += result.removed;
+			}
+		}
+
+		return { notesChanged, duplicatesRemoved };
+	}
+
 	private async ensureFolder(folderPath: string): Promise<void> {
 		const folder = this.app.vault.getAbstractFileByPath(folderPath);
 		if (!folder) {
@@ -162,16 +200,29 @@ export class SyncService {
 		const existingFile = this.app.vault.getAbstractFileByPath(filePath);
 
 		if (existingFile instanceof TFile) {
-			// Append to existing note
+			// Append to existing note, skipping highlights already present
 			const existingContent = await this.app.vault.read(existingFile);
-			const updatedContent = appendHighlightsToNote(
+			const newHighlights = filterDuplicateHighlights(
 				existingContent,
 				articleGroup.highlights
 			);
-			await this.app.vault.modify(existingFile, updatedContent);
+			if (newHighlights.length > 0) {
+				const updatedContent = appendHighlightsToNote(
+					existingContent,
+					newHighlights
+				);
+				await this.app.vault.modify(existingFile, updatedContent);
+			}
 		} else {
-			// Create new note
-			const content = generateNoteContent(articleGroup, this.settings);
+			// Create new note, deduping within the batch
+			const dedupedGroup = {
+				...articleGroup,
+				highlights: filterDuplicateHighlights(
+					"",
+					articleGroup.highlights
+				),
+			};
+			const content = generateNoteContent(dedupedGroup, this.settings);
 			await this.app.vault.create(filePath, content);
 		}
 	}

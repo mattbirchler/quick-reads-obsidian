@@ -69,6 +69,80 @@ export function generateNoteContent(
 	return renderTemplate(settings.noteTemplate, vars) + "\n";
 }
 
+export function extractHighlightTexts(content: string): Set<string> {
+	const texts = new Set<string>();
+	for (const line of content.split("\n")) {
+		if (line.startsWith(">")) {
+			const text = line.replace(/^>\s?/, "").trim();
+			if (text) {
+				texts.add(text);
+			}
+		}
+	}
+	return texts;
+}
+
+export function filterDuplicateHighlights(
+	existingContent: string,
+	highlights: ApiHighlight[]
+): ApiHighlight[] {
+	const seen = extractHighlightTexts(existingContent);
+	const result: ApiHighlight[] = [];
+	for (const highlight of highlights) {
+		const text = highlight.text.trim();
+		if (!text || seen.has(text)) {
+			continue;
+		}
+		seen.add(text);
+		result.push(highlight);
+	}
+	return result;
+}
+
+export function removeDuplicateHighlightBlocks(content: string): {
+	content: string;
+	removed: number;
+} {
+	const lines = content.split("\n");
+	const seen = new Set<string>();
+	const out: string[] = [];
+	let removed = 0;
+	let i = 0;
+
+	while (i < lines.length) {
+		if (!lines[i].startsWith(">")) {
+			out.push(lines[i]);
+			i++;
+			continue;
+		}
+
+		const start = i;
+		while (i < lines.length && lines[i].startsWith(">")) {
+			i++;
+		}
+		const block = lines.slice(start, i);
+		const text = block
+			.map((line) => line.replace(/^>\s?/, ""))
+			.join("\n")
+			.trim();
+
+		if (text && seen.has(text)) {
+			removed++;
+			// Drop the blank line that separated this block from prior content
+			if (out.length > 0 && out[out.length - 1].trim() === "") {
+				out.pop();
+			}
+		} else {
+			if (text) {
+				seen.add(text);
+			}
+			out.push(...block);
+		}
+	}
+
+	return { content: out.join("\n"), removed };
+}
+
 export function appendHighlightsToNote(
 	existingContent: string,
 	newHighlights: ApiHighlight[]

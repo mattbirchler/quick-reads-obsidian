@@ -42,6 +42,13 @@ export class QuickReadsApi {
 			offset += limit;
 		}
 
-		return allHighlights;
+		// Offset pagination can return the same record on two pages if data
+		// changes mid-fetch; keep the first occurrence of each id.
+		const seenIds = new Set<string>();
+		return allHighlights.filter((h) => {
+			if (seenIds.has(h.id)) return false;
+			seenIds.add(h.id);
+			return true;
+		});
 	}
 }

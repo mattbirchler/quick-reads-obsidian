@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Notice, Plugin } from "obsidian";
 import { QuickReadsApi } from "./api";
 import { QuickReadsSettingTab } from "./settings";
 import { SyncService } from "./sync";
@@ -39,6 +39,14 @@ export default class QuickReadsPlugin extends Plugin {
 			name: "Sync highlights from quick reads",
 			callback: () => {
 				void this.syncHighlights();
+			},
+		});
+
+		this.addCommand({
+			id: "remove-duplicate-highlights",
+			name: "Remove duplicate highlights from synced notes",
+			callback: () => {
+				void this.removeDuplicateHighlights();
 			},
 		});
 
@@ -95,6 +103,24 @@ export default class QuickReadsPlugin extends Plugin {
 	async syncHighlights() {
 		if (this.syncService) {
 			await this.syncService.sync();
+		}
+	}
+
+	async removeDuplicateHighlights() {
+		if (!this.syncService) {
+			return;
+		}
+		const result = await this.syncService.removeDuplicatesFromNotes();
+		if (result.duplicatesRemoved > 0) {
+			new Notice(
+				`Removed ${result.duplicatesRemoved} duplicate highlight${
+					result.duplicatesRemoved === 1 ? "" : "s"
+				} across ${result.notesChanged} note${
+					result.notesChanged === 1 ? "" : "s"
+				}`
+			);
+		} else {
+			new Notice("No duplicate highlights found");
 		}
 	}
 
