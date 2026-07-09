@@ -1,6 +1,6 @@
 {
 	"name": "quick-reads-obsidian",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "Obsidian plugin to sync highlights from Quick Reads",
 	"main": "main.js",
 	"scripts": {

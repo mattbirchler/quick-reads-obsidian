@@ -59,7 +59,7 @@ export default class QuickReadsPlugin extends Plugin {
 		// Sync on startup if enabled
 		if (this.settings.syncOnStartup && this.settings.apiKey) {
 			// Delay startup sync slightly to let Obsidian fully load
-			setTimeout(() => {
+			window.setTimeout(() => {
 				void this.syncHighlights();
 			}, 2000);
 		}
@@ -70,7 +70,7 @@ export default class QuickReadsPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		const data = await this.loadData();
+		const data = (await this.loadData()) as Partial<PluginData> | null;
 		if (data) {
 			this.pluginData = {
 				...DEFAULT_PLUGIN_DATA,
