@@ -44,7 +44,7 @@ export class SyncService {
 	}
 
 	async sync(): Promise<{ synced: number; errors: number }> {
-		if (!this.settings.apiKey) {
+		if (!this.api.hasApiKey()) {
 			new Notice("Please configure your quick reads API key in settings");
 			return { synced: 0, errors: 0 };
 		}
