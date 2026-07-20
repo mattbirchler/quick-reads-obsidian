@@ -3,11 +3,18 @@ import { QuickReadsApi } from "./api";
 import { QuickReadsSettingTab } from "./settings";
 import { SyncService } from "./sync";
 import {
+	API_KEY_SECRET_ID,
 	DEFAULT_PLUGIN_DATA,
 	DEFAULT_SETTINGS,
 	PluginData,
 	QuickReadsSettings,
 } from "./types";
+
+// Settings shape used by data.json before the API key moved to
+// Obsidian's SecretStorage (1.11.4+). Kept only to migrate old vaults.
+interface LegacySettings {
+	apiKey?: string;
+}
 
 export default class QuickReadsPlugin extends Plugin {
 	settings: QuickReadsSettings = DEFAULT_SETTINGS;
@@ -18,8 +25,9 @@ export default class QuickReadsPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
+		await this.migrateApiKeyToSecretStorage();
 
-		this.api = new QuickReadsApi(this.settings.apiKey);
+		this.api = new QuickReadsApi(this.getApiKey());
 		this.syncService = new SyncService(
 			this.app,
 			this.api,
@@ -57,7 +65,7 @@ export default class QuickReadsPlugin extends Plugin {
 		this.setupAutoSync();
 
 		// Sync on startup if enabled
-		if (this.settings.syncOnStartup && this.settings.apiKey) {
+		if (this.settings.syncOnStartup && this.api.hasApiKey()) {
 			// Delay startup sync slightly to let Obsidian fully load
 			window.setTimeout(() => {
 				void this.syncHighlights();
@@ -87,10 +95,35 @@ export default class QuickReadsPlugin extends Plugin {
 	async saveSettings() {
 		this.pluginData.settings = this.settings;
 		await this.saveData(this.pluginData);
-		this.api.setApiKey(this.settings.apiKey);
 		if (this.syncService) {
 			this.syncService.updateSettings(this.settings);
 		}
+	}
+
+	getApiKey(): string {
+		return this.app.secretStorage.getSecret(API_KEY_SECRET_ID) ?? "";
+	}
+
+	setApiKey(apiKey: string) {
+		this.app.secretStorage.setSecret(API_KEY_SECRET_ID, apiKey);
+		this.api.setApiKey(apiKey);
+	}
+
+	/**
+	 * Vaults upgrading from <=1.0.4 have the API key sitting in plaintext
+	 * in data.json. Move it into SecretStorage once and strip it out.
+	 */
+	private async migrateApiKeyToSecretStorage(): Promise<void> {
+		const legacySettings = this.pluginData.settings as QuickReadsSettings &
+			LegacySettings;
+		const legacyApiKey = legacySettings.apiKey;
+		if (!legacyApiKey) {
+			return;
+		}
+
+		this.app.secretStorage.setSecret(API_KEY_SECRET_ID, legacyApiKey);
+		delete legacySettings.apiKey;
+		await this.saveData(this.pluginData);
 	}
 
 	async savePluginData() {

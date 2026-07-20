@@ -2,6 +2,7 @@ import {
 	AbstractInputSuggest,
 	App,
 	PluginSettingTab,
+	SecretComponent,
 	Setting,
 	TFolder,
 } from "obsidian";
@@ -43,15 +44,14 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("API key")
 			.setDesc(
-				"Your quick reads API key. Get it from quickreads.app/settings"
+				"Your quick reads API key. Get it from quickreads.app/settings. " +
+					"Stored securely via Obsidian's secret storage, not in this vault's files."
 			)
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your API key")
-					.setValue(this.plugin.settings.apiKey)
-					.onChange(async (value) => {
-						this.plugin.settings.apiKey = value;
-						await this.plugin.saveSettings();
+			.addComponent((el) =>
+				new SecretComponent(this.app, el)
+					.setValue(this.plugin.getApiKey())
+					.onChange((value) => {
+						this.plugin.setApiKey(value);
 					})
 			);
 

@@ -14,6 +14,10 @@ export class QuickReadsApi {
 		this.apiKey = apiKey;
 	}
 
+	hasApiKey(): boolean {
+		return this.apiKey.length > 0;
+	}
+
 	async fetchAllHighlights(): Promise<ApiHighlight[]> {
 		const allHighlights: ApiHighlight[] = [];
 		let offset = 0;

@@ -1,10 +1,13 @@
 export interface QuickReadsSettings {
-	apiKey: string;
 	highlightsFolder: string;
 	syncOnStartup: boolean;
 	autoSyncInterval: number; // minutes, 0 = disabled
 	noteTemplate: string;
 }
+
+// Secret storage ID for the API key. Must be lowercase alphanumeric with
+// optional dashes, per Obsidian's SecretStorage API.
+export const API_KEY_SECRET_ID = "quick-reads-api-key";
 
 export const DEFAULT_NOTE_TEMPLATE = `---
 quickReadsArticleId: {{articleId}}
@@ -18,7 +21,6 @@ url: {{url}}
 {{highlights}}`;
 
 export const DEFAULT_SETTINGS: QuickReadsSettings = {
-	apiKey: "",
 	highlightsFolder: "quick reads",
 	syncOnStartup: false,
 	autoSyncInterval: 0,
