@@ -2,7 +2,7 @@
 	"id": "quick-reads-sync",
 	"name": "Quick Reads Sync",
 	"version": "1.0.4",
-	"minAppVersion": "1.6.6",
+	"minAppVersion": "1.11.4",
 	"description": "Sync your highlights from quick reads into your vault.",
 	"author": "Matt Birchler",
 	"authorUrl": "https://quickreads.app",

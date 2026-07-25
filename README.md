@@ -12,7 +12,7 @@ Sync your Quick Reads highlights into Obsidian notes.
 
 ## Requirements
 
-- Obsidian `1.6.6` or newer
+- Obsidian `1.11.4` or newer (required for secure API key storage)
 - A Quick Reads API key from `https://quickreads.app/settings`
 
 ## Setup
@@ -45,6 +45,7 @@ You can customize the note template using:
 - The plugin tracks synced highlight IDs to avoid duplicate imports.
 - If a note already exists for an article, newly fetched highlights are appended.
 - If no new highlights are available, the plugin records the sync time and exits.
+- Your API key is stored using Obsidian's secret storage (OS keychain), not in plaintext in the vault's `data.json`. Vaults upgrading from an older version of this plugin have their existing key migrated automatically on first load.
 
 ## Troubleshooting
 
