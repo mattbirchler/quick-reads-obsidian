@@ -65,9 +65,11 @@ export class SyncService {
 			// Fetch all highlights from API
 			const allHighlights = await this.api.fetchAllHighlights();
 
-			// Filter out already synced highlights
+			// Filter out already synced highlights (Set lookup keeps this
+			// fast for large libraries)
+			const syncedIds = new Set(this.pluginData.syncedHighlightIds);
 			const newHighlights = allHighlights.filter(
-				(h) => !this.pluginData.syncedHighlightIds.includes(h.id)
+				(h) => !syncedIds.has(h.id)
 			);
 
 			if (newHighlights.length === 0) {
