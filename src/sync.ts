@@ -43,13 +43,23 @@ export class SyncService {
 		this.pluginData = pluginData;
 	}
 
-	async sync(): Promise<{ synced: number; errors: number }> {
+	async sync(
+		options: { silent?: boolean } = {}
+	): Promise<{ synced: number; errors: number }> {
+		const silent = options.silent ?? false;
+
 		if (!this.settings.apiKey) {
-			new Notice("Please configure your quick reads API key in settings");
+			if (!silent) {
+				new Notice(
+					"Please configure your quick reads API key in settings"
+				);
+			}
 			return { synced: 0, errors: 0 };
 		}
 
-		new Notice("Syncing highlights from quick reads...");
+		if (!silent) {
+			new Notice("Syncing highlights from quick reads...");
+		}
 
 		try {
 			// Fetch all highlights from API
@@ -61,7 +71,9 @@ export class SyncService {
 			);
 
 			if (newHighlights.length === 0) {
-				new Notice("No new highlights to sync");
+				if (!silent) {
+					new Notice("No new highlights to sync");
+				}
 				this.pluginData.lastSyncTime = new Date().toISOString();
 				await this.savePluginData();
 				return { synced: 0, errors: 0 };
@@ -101,11 +113,12 @@ export class SyncService {
 			this.pluginData.lastSyncTime = new Date().toISOString();
 			await this.savePluginData();
 
+			// Silent (background) syncs only notify when something happened
 			if (errorCount > 0) {
 				new Notice(
 					`Synced ${syncedCount} highlights with ${errorCount} errors`
 				);
-			} else {
+			} else if (!silent || syncedCount > 0) {
 				new Notice(`Successfully synced ${syncedCount} highlights`);
 			}
 

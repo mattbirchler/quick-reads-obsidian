@@ -9,12 +9,30 @@ import {
 	QuickReadsSettings,
 } from "./types";
 
+export function formatRelativeTime(isoDate: string): string {
+	const elapsedMs = Date.now() - new Date(isoDate).getTime();
+	const minutes = Math.floor(elapsedMs / (60 * 1000));
+	if (minutes < 1) {
+		return "just now";
+	}
+	if (minutes < 60) {
+		return `${minutes}m ago`;
+	}
+	const hours = Math.floor(minutes / 60);
+	if (hours < 24) {
+		return `${hours}h ago`;
+	}
+	const days = Math.floor(hours / 24);
+	return `${days}d ago`;
+}
+
 export default class QuickReadsPlugin extends Plugin {
 	settings: QuickReadsSettings = DEFAULT_SETTINGS;
 	pluginData: PluginData = DEFAULT_PLUGIN_DATA;
 	private api: QuickReadsApi = new QuickReadsApi("");
 	private syncService: SyncService | null = null;
 	private autoSyncIntervalId: number | null = null;
+	private statusBarItem: HTMLElement | null = null;
 
 	async onload() {
 		await this.loadSettings();
@@ -53,6 +71,14 @@ export default class QuickReadsPlugin extends Plugin {
 		// Add settings tab
 		this.addSettingTab(new QuickReadsSettingTab(this.app, this));
 
+		// Status bar showing last sync time
+		this.statusBarItem = this.addStatusBarItem();
+		this.updateStatusBar();
+		// Keep the relative time fresh
+		this.registerInterval(
+			window.setInterval(() => this.updateStatusBar(), 60 * 1000)
+		);
+
 		// Setup auto-sync
 		this.setupAutoSync();
 
@@ -60,7 +86,7 @@ export default class QuickReadsPlugin extends Plugin {
 		if (this.settings.syncOnStartup && this.settings.apiKey) {
 			// Delay startup sync slightly to let Obsidian fully load
 			window.setTimeout(() => {
-				void this.syncHighlights();
+				void this.syncHighlights({ silent: true });
 			}, 2000);
 		}
 	}
@@ -100,10 +126,23 @@ export default class QuickReadsPlugin extends Plugin {
 		}
 	}
 
-	async syncHighlights() {
+	async syncHighlights(options: { silent?: boolean } = {}) {
 		if (this.syncService) {
-			await this.syncService.sync();
+			await this.syncService.sync(options);
+			this.updateStatusBar();
 		}
+	}
+
+	updateStatusBar() {
+		if (!this.statusBarItem) {
+			return;
+		}
+		const lastSync = this.pluginData.lastSyncTime;
+		this.statusBarItem.setText(
+			lastSync
+				? `Quick Reads: synced ${formatRelativeTime(lastSync)}`
+				: "Quick Reads: not synced yet"
+		);
 	}
 
 	async removeDuplicateHighlights() {
@@ -130,7 +169,7 @@ export default class QuickReadsPlugin extends Plugin {
 		if (this.settings.autoSyncInterval > 0) {
 			const intervalMs = this.settings.autoSyncInterval * 60 * 1000;
 			this.autoSyncIntervalId = window.setInterval(() => {
-				void this.syncHighlights();
+				void this.syncHighlights({ silent: true });
 			}, intervalMs);
 
 			// Register interval for cleanup
