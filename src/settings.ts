@@ -8,6 +8,14 @@ import {
 import QuickReadsPlugin from "./main";
 
 class FolderSuggest extends AbstractInputSuggest<TFolder> {
+	constructor(
+		app: App,
+		textInputEl: HTMLInputElement,
+		private readonly onSelectFolder: (path: string) => void
+	) {
+		super(app, textInputEl);
+	}
+
 	getSuggestions(query: string): TFolder[] {
 		const folders = this.app.vault.getAllFolders();
 		const lower = query.toLowerCase();
@@ -22,6 +30,7 @@ class FolderSuggest extends AbstractInputSuggest<TFolder> {
 
 	selectSuggestion(folder: TFolder): void {
 		this.setValue(folder.path);
+		this.onSelectFolder(folder.path);
 		this.close();
 	}
 }
@@ -59,17 +68,19 @@ export class QuickReadsSettingTab extends PluginSettingTab {
 			.setName("Highlights folder")
 			.setDesc("Folder where highlight notes will be created")
 			.addSearch((search) => {
-				new FolderSuggest(this.app, search.inputEl).onSelect(
-					async () => {
-						const value = search.getValue();
+				search
+					.setPlaceholder("Quick reads")
+					.setValue(this.plugin.settings.highlightsFolder)
+					.onChange(async (value) => {
 						this.plugin.settings.highlightsFolder =
 							value || "quick reads";
 						await this.plugin.saveSettings();
-					}
-				);
-				search
-					.setPlaceholder("Quick reads")
-					.setValue(this.plugin.settings.highlightsFolder);
+					});
+				new FolderSuggest(this.app, search.inputEl, (path) => {
+					this.plugin.settings.highlightsFolder =
+						path || "quick reads";
+					void this.plugin.saveSettings();
+				});
 			});
 
 		new Setting(containerEl)
